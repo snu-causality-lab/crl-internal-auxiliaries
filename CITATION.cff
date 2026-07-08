@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the accompanying paper."
+title: "On Causal Representation Learning with Internal Auxiliaries"
+type: software
+authors:
+  - family-names: Kim
+    given-names: Kwonho
+  - family-names: Nam
+    given-names: Heejeong
+  - family-names: Hwang
+    given-names: Inwoo
+  - family-names: Lee
+    given-names: Sanghack
+date-released: 2026-07-05
+license: MIT
+url: "https://openreview.net/forum?id=4OHQeqhdX1"
