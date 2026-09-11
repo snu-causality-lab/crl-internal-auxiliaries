@@ -358,14 +358,22 @@ if __name__ == "__main__":
     pl.seed_everything(args.training_seed, workers=True)
     intervention_targets_per_env = DGP[args.dgp]["int_targets"]
 
-    # Model Initialization
+    # Resolve the actual device before constructing iVAE's distribution tensors.
     if args.accelerator == "gpu":
-        _tensor_device = f"cuda:{args.device}"
-    elif args.accelerator == "mps":
-        _tensor_device = "mps"
+        _devices = [args.device]
     else:
-        _tensor_device = "cpu"
+        _devices = 1
+    trainer = pl.Trainer(
+        max_epochs=args.max_epochs,
+        logger=None,
+        callbacks=[checkpoint_callback] if args.wandb else [],
+        check_val_every_n_epoch=args.check_val_every_n_epoch,
+        accelerator=args.accelerator,
+        devices=_devices,
+    )
+    _tensor_device = trainer.strategy.root_device
 
+    # Model Initialization
     if args.model == "nonlinear":
         model = iVAEWrapper(
             data_dim=data_dim,
@@ -384,18 +392,6 @@ if __name__ == "__main__":
     else:
         raise ValueError(f"Unknown model type {args.model}")
 
-    if args.accelerator == "gpu":
-        _devices = [args.device]
-    else:
-        _devices = 1
-    trainer = pl.Trainer(
-        max_epochs=args.max_epochs,
-        logger=None,
-        callbacks=[checkpoint_callback] if args.wandb else [],
-        check_val_every_n_epoch=args.check_val_every_n_epoch,
-        accelerator=args.accelerator,
-        devices=_devices,
-    )
     trainer.fit(
         model,
         datamodule=data_module,
