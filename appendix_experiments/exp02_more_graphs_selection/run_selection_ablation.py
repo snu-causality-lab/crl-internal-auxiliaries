@@ -1,15 +1,9 @@
-"""Density / complexity sweep for Algorithm 1 on extra graphs.
+"""Density / complexity sweep with preconfigured auxiliary sets.
 
-This experiment studies the robustness of Algorithm 1 beyond the Figure 3
-setting: rather than compare "with vs without selection" (which
-cannot be run here because ``selected_idx=[]`` crashes
-``training_step`` at ``torch.cov`` / ``MultivariateNormal`` on empty
-tensors), we compare Algorithm 1 *with* the selection step enabled on a
-battery of denser / larger graphs. The main question is whether Algorithm 1's
-benefit scales with graph density and complexity. We answer it by running the
-method on a spectrum of graphs (from the
-paper's ``c_real`` baseline up through 6-node dense DAGs) and reporting
-DCI / MCC per graph.
+This experiment evaluates the proposed training method on denser or larger
+graphs, reporting DCI / MCC with each graph's fixed auxiliary set. It does
+not execute the paper's graph-selection algorithm or Bayes-ball, and does
+not measure a with-vs-without selection effect.
 
 For every graph in ``extra_graphs.EXTRA_DGPS`` (and optionally the
 paper's ``c_real`` baseline via ``--include-baseline``) we launch the
@@ -111,7 +105,7 @@ def _run_one(
 
 def main() -> None:
     ap = argparse.ArgumentParser(
-        description="Run Algorithm 1 on extra (denser) graphs for exp02."
+        description="Run exp02 graph robustness with preconfigured auxiliary sets."
     )
     ap.add_argument("--seeds", default="0-4",
                     help="Contiguous seed range (default 0-4).")

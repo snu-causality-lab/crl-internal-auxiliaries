@@ -13,7 +13,7 @@ export CRL_CONDA_ENV=crl
 | Exp | Array | Tasks | GPU-hr | Appendix use |
 |-----|-------|-------|--------|--------------|
 | 01 | 3 DGPs x 2 SCMs x 5 seeds | 30 | ~3-4 pilot | Nonlinear-SCM ablation; optional GBR-DCI / kernel-ridge R2 metrics. |
-| 02 | 6 DGPs x 5 seeds | 30 | ~3-4 pilot | Extra selection graphs for Algorithm 1. |
+| 02 | 6 DGPs x 5 seeds | 30 | ~3-4 pilot | Extra graphs with preconfigured selected auxiliaries. |
 | 04 | 3 beta configs x 2 DGPs x 5 seeds | 30 | ~3-4 pilot | Beta-range robustness check. |
 | 06 | 3 DGPs x 2 mixings x 25 seeds | 150 | ~18-24 full | VP vs non-VP data-generating mixing ablation. |
 
@@ -126,7 +126,7 @@ The pilot scripts use 5 seeds per cell. To upgrade pilots:
 - exp01: edit `run_slurm.sh` to `SEEDS=(0..24)` and `#SBATCH --array=0-149%8`
   for the 25-seed additional-ablation setting reported in the paper.
 - exp02: edit to `SEEDS=(0..19)` and `#SBATCH --array=0-119%8` for the 20-seed
-  main-experiment convention (this is a selection check, not an App. E table).
+  main-experiment convention (this is a graph robustness sweep, not an App. E table).
 - exp04: edit to `SEEDS=(0..24)` and `#SBATCH --array=0-149%8` for the 25-seed
   additional-ablation setting reported in the paper.
 - exp06: already runs the 25-seed additional-ablation setting.
@@ -146,7 +146,7 @@ The pilot scripts use 5 seeds per cell. To upgrade pilots:
 
 - `README.md` -- overall description of the additional appendix runs.
 - `exp01_nonlinear_scm/` -- nonlinear SCM sweep and optional nonlinear metrics.
-- `exp02_more_graphs_selection/` -- denser graphs for Algorithm 1.
+- `exp02_more_graphs_selection/` -- denser graphs with preconfigured auxiliary sets; no automatic graph selection.
 - `exp04_beta_ablation/` -- beta-range ablation.
 - `exp06_nonvp_ablation/` -- VP vs non-VP data-generating mixing ablation.
 - `RUN_APPENDIX.md` -- this file.

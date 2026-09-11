@@ -7,13 +7,10 @@ Layout expected, produced by ``run_selection_ablation.py``:
 
 Legacy ``{seed}_*score:*.csv`` files are still accepted as a fallback.
 
-One row per (dgp): DCI disentanglement, DCI completeness and MCC score
-(mean +/- std across seeds). The table intentionally has a single column
-per graph rather than a with/without delta -- running Algorithm 1 with
-``selected_idx = []`` is not a valid configuration in the current
-codebase (it crashes the training step), so the reframed ablation
-compares Algorithm 1 across a spectrum of graph densities rather than
-toggling the selection step on/off.
+One row per DGP: DCI disentanglement, DCI completeness and MCC score
+(mean +/- std across seeds). Each graph uses a preconfigured auxiliary set;
+the table summarizes recovery across graphs, not a with-vs-without
+selection effect or execution of the paper's graph-selection algorithm.
 """
 
 from __future__ import annotations

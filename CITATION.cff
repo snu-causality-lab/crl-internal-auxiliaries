@@ -13,4 +13,25 @@ authors:
     given-names: Sanghack
 date-released: 2026-07-05
 license: MIT
-url: "https://openreview.net/forum?id=4OHQeqhdX1"
+url: "https://github.com/snu-causality-lab/crl-internal-auxiliaries"
+repository-code: "https://github.com/snu-causality-lab/crl-internal-auxiliaries"
+preferred-citation:
+  type: conference-paper
+  title: "On Causal Representation Learning with Internal Auxiliaries"
+  authors:
+    - family-names: Kim
+      given-names: Kwonho
+    - family-names: Nam
+      given-names: Heejeong
+    - family-names: Hwang
+      given-names: Inwoo
+    - family-names: Lee
+      given-names: Sanghack
+  collection-title: "Proceedings of the 42nd Conference on Uncertainty in Artificial Intelligence"
+  year: 2026
+  volume: "337"
+  start: "3061"
+  end: "3082"
+  publisher:
+    name: "PMLR"
+  url: "https://proceedings.mlr.press/v337/kim26e.html"
