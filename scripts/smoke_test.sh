@@ -10,4 +10,5 @@ python run_all.py \
   --dgp-list a \
   --seeds 0 1 \
   --max-epochs 1 \
+  --result-root ./results_smoke \
   --accelerator cpu
