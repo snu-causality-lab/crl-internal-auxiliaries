@@ -2,8 +2,8 @@
 
 Supplementary runs for the UAI 2026 paper
 *On Causal Representation Learning with Internal Auxiliaries*
-These scripts reproduce additional experiments used in the final paper and
-appendix.
+These scripts cover the paper's additional ablations and an extra graph
+robustness sweep.
 
 ## Relationship to the main codebase
 
@@ -22,7 +22,7 @@ VP-vs-non-VP tables use `0..24`.
 | Exp | Status | Compute | Appendix use |
 |-----|--------|---------|--------------|
 | 01  | active | ~30 GPU-hr full | Non-linear SCM via `--scm location-scale`, with optional GBR-DCI / kernel-ridge R2 validation. |
-| 02  | active | ~15 GPU-hr | Extra denser/larger DGPs with Algorithm 1 selection enabled; a robustness sweep, not a with-vs-without selection toggle. |
+| 02  | active | ~15 GPU-hr | Extra denser/larger DGPs with preconfigured selected auxiliaries; no automatic selection or with-vs-without comparison. |
 | 04  | active | ~12-16 GPU-hr full | Beta-coefficient range ablation: paper range vs. sign-varying vs. small magnitude. |
 | 06  | active | ~18-24 GPU-hr full | VP vs. non-VP data-generating mixing ablation using GIN vs. Glow-style coupling blocks. |
 
@@ -53,7 +53,7 @@ checking the appendix tables.
 ## Appendix Mapping
 
 - exp01: nonlinear-SCM and nonlinear-metric validation.
-- exp02: denser/larger graph robustness for Algorithm 1 with selection enabled.
+- exp02: extra graph robustness with preconfigured selected auxiliaries; not an App. E table.
 - exp04: beta-range robustness.
 - exp06: VP vs. non-VP data-generating mixing sensitivity.
 

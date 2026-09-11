@@ -343,11 +343,15 @@ class GraphPrior(nn.Module):
             self.functions_per_node[index] = self.base_functions[index]
 
     def forward(self, z, idx_list):
-        """
+        """Predict observed-but-unselected source values.
+
         Parameters
         ----------
-        u: Tensor, shape (num_samples, latent_dim)
-            Samples of the exogenous noise variables.
+        z: Tensor, shape (num_samples, representation_dim)
+            Full learned representation. Predictors read their graph-parent
+            slots and their own slot; parentless nodes return their own slot.
+        idx_list: sequence of int
+            Graph nodes whose values are predicted.
         """
         v = torch.full_like(z, float('nan'))  # Initialize with NaNs
         for index in idx_list:

@@ -1,15 +1,21 @@
 # On Causal Representation Learning with Internal Auxiliaries
 
-This repository provides the implementation for reproducing the experiments in
-the UAI 2026 paper *On Causal Representation Learning with Internal
-Auxiliaries*.
+Code accompanying [On Causal Representation Learning with Internal Auxiliaries](https://proceedings.mlr.press/v337/kim26e.html),
+published at UAI 2026 (PMLR 337:3061–3082). See
+[Reproducing Experiments](#reproducing-experiments) for the included pipelines.
 
 ## Overview
 
-The paper addresses the challenge of causal representation learning (CRL) when observable sources act as **internal** auxiliaries in the mixing process. Standard identifiability proofs (e.g., multi-environment ICA/ISA) break down in this setting because the auxiliary information is entangled with the latent variables through the mixing function. Our framework achieves identifiability through:
+The paper studies causal representation learning when observed sources also
+enter the mixing process as **internal** auxiliaries. Its identifiability
+result covers the selected-source case (`O = C`) under the stated variability,
+support, common-reparameterization, block-matching, and volume-preserving
+assumptions. The experimental method also handles observed-but-unselected
+sources through a structural prediction penalty.
 
-1. **Volume-preserving mixing assumption** — using GIN (General Incompressible-flow Networks) coupling blocks
-2. **Graph-aware variable selection** — selecting which observable sources to use as auxiliaries based on the causal graph structure
+The released pipeline uses GIN (General Incompressible-flow Networks) coupling
+blocks and graph-specific, preconfigured auxiliary indices. It does not execute
+the paper's graph-selection or Bayes-ball algorithms (Algorithms 1 and 2).
 
 ## Requirements
 
@@ -118,17 +124,26 @@ The Data Generating Process (DGP) names in the config files correspond to the pa
 
 | DGP Name  | Paper Reference      | Description                                        |
 |-----------|---------------------|----------------------------------------------------|
-| `a`       | Fig. 1(a)            | 5 nodes, single auxiliary (ICA setting)             |
+| `a`       | Fig. 1(a) dependency graph | 5 nodes, four conditionally independent targets; auxiliary also enters mixing |
 | `b`       | Fig. 1(c)            | 5 nodes, single observable source (ISA setting)     |
-| `b_aug`   | Fig. 1(c) augmented  | 5 nodes, augmented observable                       |
-| `c`       | App. F beta ablation | 4 nodes, multiple observables                       |
-| `c_aug`   | —                    | 4 nodes, augmented multiple observables             |
+| `b_aug`   | —                    | 5-node graph variant with the same selected source as `b` |
+| `c`       | App. E beta ablation | 4 nodes, multiple observables                       |
+| `c_aug`   | —                    | 4-node variant of `c` with an added edge to the observed-but-unselected node |
 | `c_real`  | Fig. 1(d)            | 4 nodes; selected source `s4`, observed-but-unselected source `s2` |
+
+DGP `a` is not an external-auxiliary control: all five sources enter the
+mixing map. For `c_real`, code indices `[0, 1, 2, 3]` correspond to paper
+sources `[s1, s3, s2, s4]`.
 
 ## Reproducing Experiments
 
 Run the commands below from the repository root; the repository is not installed
 as a Python package.
+
+The public runners cover quantitative synthetic/image experiments and the
+listed appendix sweeps. They do not include the separate image compression,
+reconstruction, and traversal experiment. For the proposed method and GIN,
+main image runs apply the VP flow at the full image dimension.
 
 ### Step 1: Generate Image Datasets
 
@@ -219,6 +234,20 @@ Additional appendix wrappers document their own pilot/full seed ranges in
 or accelerator memory is insufficient, rerun with a smaller override such as
 `--batch-size 128`.
 
+#### Issue Reproducers and Regression Tests
+
+The [issue reproduction guide](REPRODUCING_ISSUES.md) compares the original
+release with the fixes for smoke-output collisions and iVAE automatic device
+selection. These checks use temporary sentinel files or a small forward pass;
+they do not train models or rerun the paper experiments.
+
+```bash
+python -B -m unittest discover -s tests -v
+```
+
+Tests requiring the ML environment or accelerator hardware skip explicitly
+when unavailable. The one-epoch smoke test below is a separate training check.
+
 #### Quick Smoke Test
 
 After installing dependencies, run a short CPU-only check:
@@ -229,19 +258,28 @@ bash scripts/smoke_test.sh
 
 This runs the proposed method on DGP `a` for one epoch and one seed. It is
 intended only to verify that imports, data generation, training, and result
-writing work in the current environment.
+writing work in the current environment. Its output is isolated under
+`results_smoke/result_ours_synthetic/a/`.
+
+To keep other short runs separate from paper results, set `--result-root`
+(default: the current directory):
+
+```bash
+python run_all.py --ours --synthetic --dgp-list a --seeds 0 1 --max-epochs 1 --accelerator cpu --result-root ./results_check
+```
 
 ### Additional Appendix Experiments
 
-The `appendix_experiments/` directory contains reproducible wrappers for
-additional experiments reported in the paper appendix:
+The `appendix_experiments/` directory contains wrappers for the paper's
+additional ablations and an extra graph robustness sweep:
 
 - `exp01_nonlinear_scm`: compares `--scm linear` with
   `--scm location-scale`. Passing `--compute-nonlinear-metrics` sets
   `COMPUTE_NONLINEAR_METRICS=1` and writes optional GBR-DCI /
   kernel-ridge R2 metrics.
 - `exp02_more_graphs_selection`: additional denser/larger graph cases with
-  the selection step enabled.
+  preconfigured selected auxiliary sets; no automatic graph-selection step
+  or with-vs-without selection comparison.
 - `exp04_beta_ablation`: beta-coefficient range ablation.
 - `exp06_nonvp_ablation`: compares VP data-generating mixing with
   `--mixing nonvolumepreserving`, a Glow-style non-VP coupling-flow
@@ -262,9 +300,9 @@ scripts in `plots/` recreate the paper figure panels:
 | `plots/plot_4_2_mcc_high.py` | `result_{ours,GIN,iVAE}_{pendulum,flow}/c_real` | `plots/{pendulum,flow}_combined_plot_abl.pdf` |
 | `plots/plot_4_1_dci.py` | `result_ours_flow/c_real` and separately generated `result_ours_flow_noselect/c_real` | `plots/combined_selection_abl_flow.pdf` |
 
-The Flow selection-ablation plot is part of the paper figures, but its
-no-selection result directory is not produced by the default `run_all.py`
-pipeline. Generate or provide `result_ours_flow_noselect/c_real` before running
+The released runners do not provide a command to generate the Flow
+no-selection comparison arm. The selection-ablation plot requires previously
+generated `result_ours_flow_noselect/c_real` results before running
 `plots/plot_4_1_dci.py`.
 
 Example plotting commands:
@@ -279,7 +317,8 @@ python plots/plot_4_1_dci.py   # requires result_ours_flow_noselect/c_real
 
 ### Step 3: Interpret Results
 
-Results are saved under `result_*/` directories with the following structure:
+`run_all.py` saves results under `result_*/` directories inside
+`--result-root`, with the following structure:
 
 ```
 result_<model>_<dataset>/
@@ -295,34 +334,38 @@ result_<model>_<dataset>/
   - `completeness`: How well each true factor is captured by only one estimated latent
   The matched MCC matrix is stored as `[true source, estimated latent]`; the
   DCI helper receives its transpose so these names follow the paper convention.
+  Scores are weighted by each coordinate's or factor's total absolute
+  correlation, with a `1e-11` offset for entropy evaluation.
 - **Optional nonlinear metrics**: When `COMPUTE_NONLINEAR_METRICS=1`, the
   proposed-method script also writes `<seed>_nonlinear_metrics.csv` with
   GBR-DCI and kernel-ridge R2 summaries.
 
 ### Evaluation matching convention (proposed method vs. baselines)
 
-All MCC/DCI scores are computed on the **unobserved target sources** — the
-coordinates that remain after removing the selected and observed sources
-(`target_idx = all_idx - selected_idx - observed_idx`). For DGP `c_real`
-(`selected_idx=[3]`, `observed_idx=[2]`) the target sources are `{0, 1}`, and
-this target set is identical for the proposed method, GIN, and iVAE.
+In the code, `selected_idx` denotes `C`, while `observed_idx` denotes the
+observed-but-unselected set `O minus C`. All methods evaluate the same unobserved
+target sources after excluding both sets. For `c_real`, selected `[3]` and
+observed-but-unselected `[2]` leave target indices `[0, 1]`.
 
-The two families differ only in **which learned coordinates the target sources
-are matched against**:
+The learned matching candidates differ:
 
-- **Proposed method**: the graph constraint confines each target source to the
-  corresponding learned target block, so the true target block is matched against
-  the *same-indexed* learned target block (the metric still resolves the
-  within-block permutation) —
-  `mean_corr_coef(v[:, target_idx], z[:, target_idx])`.
-- **GIN / iVAE baselines**: the target sources are not pre-aligned to particular
-  learned coordinates, so the true target block is matched against the *full*
-  learned representation and the metric selects the best-correlated coordinates —
-  `mean_corr_coef(v[:, target_idx], z)`.
+```python
+excluded_idx = set(selected_idx) | set(observed_idx)
+target_idx = sorted(set(range(v.shape[1])) - excluded_idx)
+candidate_idx = sorted(set(range(z.shape[1])) - excluded_idx)
 
-Matching against the full learned representation gives the baselines the larger
-search space, so this is a deliberately **more lenient** evaluation for the
-baselines and does not disadvantage them relative to the proposed method.
+# Proposed method: permutation across the candidate set is allowed.
+mean_corr_coef(v[:, target_idx], z[:, candidate_idx])
+# GIN / iVAE: match against the full learned representation.
+mean_corr_coef(v[:, target_idx], z)
+```
+
+For synthetic runs, the true and learned dimensions agree, so the proposed
+method's candidate indices equal the target indices. For image runs, its
+learned representation has the image dimension, yielding many more candidates.
+This convention does not guarantee source-to-slot alignment. For a fixed
+representation, enlarging the candidate set cannot reduce optimized MCC,
+but need not improve the DCI-style scores computed after matching.
 
 ## Hardware Requirements
 
@@ -331,20 +374,24 @@ baselines and does not disadvantage them relative to the proposed method.
   RAM to load the PNG tensors into memory; reduce `--batch-size` if memory is
   tight
 - **CPU fallback**: Modify `--accelerator=cpu` in the experiment commands (significantly slower)
+- **iVAE device selection**: Fixed distribution tensors are initialized on the
+  device selected by Lightning, including when `--accelerator auto` is used.
 
 ## Notes
 
 - The implementation of the volume-preserving encoder is built upon the [CauCA](https://github.com/akekic/causal-component-analysis) codebase.
 - The Pendulum and Flow dataset generators are adapted from CausalVAE (Yang et al., 2021).
 - The DCI-style score follows the DisentanglementLib entropy formulation with MCC-based importance values.
-- The graph-prior implementation uses graph predecessor indices as fixed
-  learned-coordinate slots for each node-wise predictor.
+- The graph prior predicts observed-but-unselected values from the full
+  learned representation at each node's parent indices and its own slot.
+  Parentless nodes use their own slot directly. This prediction penalty
+  does not guarantee source-to-slot alignment.
 - Third-party code notices are listed in `THIRD-PARTY-NOTICES.md`.
 
 ## Citation
 
 If you use this code, please cite the accompanying paper. Citation metadata is
-provided in `CITATION.cff`.
+provided in [CITATION.cff](CITATION.cff), including the preferred UAI paper citation.
 
 ## License
 

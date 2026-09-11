@@ -1,4 +1,4 @@
-"""Extra synthetic DGPs for the selection-ablation experiment.
+"""Extra synthetic DGPs for the graph robustness sweep.
 
 These graphs generalise ``c_real`` from ``config.DGP`` (Fig. 1d in the
 paper): 4-6 nodes, multiple observables, denser parent sets. They are
@@ -10,9 +10,8 @@ Keys follow the ``config.DGP`` entry schema:
     num_samples_per_env, observation_dim, num_blocks, block_dims,
     selected_idx, observed_idx
 
-Every new graph has at least 2 selected variables so the selection step is
-non-trivial, and at least one edge going into each selected node so that
-dropping the step actually hurts.
+Every new graph specifies two selected variables. These are fixed auxiliary
+sets, not outputs of an automatic graph-selection step.
 """
 
 from __future__ import annotations
@@ -28,9 +27,8 @@ def _no_intervention(n: int) -> torch.Tensor:
 
 EXTRA_DGPS: dict[str, dict] = {
     # ------------------------------------------------------------------
-    # c_dense: 4 nodes, same variables as c_real but with two extra edges
-    # so that *every* non-root has at least two parents. This stresses
-    # the selection step without changing the number of variables.
+    # c_dense: 4 nodes, same variables as c_real with two extra edges.
+    # Nodes 1 and 2 have multiple parents; node 3 has parent 0.
     # ------------------------------------------------------------------
     "c_dense": {
         "num_causal_variables": 4,
@@ -50,9 +48,7 @@ EXTRA_DGPS: dict[str, dict] = {
         "observed_idx": [],
     },
     # ------------------------------------------------------------------
-    # c_deep: 5 nodes, fully-connected upper triangular DAG. Sequential
-    # dependency chain with many parents -- good stress test for the
-    # downstream identification.
+    # c_deep: 5-node DAG with a dependency chain and shortcut edges.
     # ------------------------------------------------------------------
     "c_deep": {
         "num_causal_variables": 5,
@@ -100,9 +96,8 @@ EXTRA_DGPS: dict[str, dict] = {
         "observed_idx": [],
     },
     # ------------------------------------------------------------------
-    # c_obs_chain: 6 nodes with a mix of selected and observed nodes.
-    # The chain 0 -> 1 -> 2 feeds into the two-parent root node 5.
-    # Node 3 is an observed auxiliary, node 4 is selected.
+    # c_obs_chain: the chain 0 -> 1 -> 2 feeds nodes 4 and 5.
+    # Node 5 feeds observed-but-unselected node 3; nodes 4 and 5 are selected.
     # ------------------------------------------------------------------
     "c_obs_chain": {
         "num_causal_variables": 6,
@@ -127,9 +122,8 @@ EXTRA_DGPS: dict[str, dict] = {
         "observed_idx": [3],
     },
     # ------------------------------------------------------------------
-    # c_hub6: 6-node, mildly dense. Selected covers a non-leaf to probe
-    # how selection helps when the selected nodes lie in the middle of
-    # the topological order.
+    # c_hub6: 6-node, mildly dense graph with selected nodes 2 and 5,
+    # including the non-leaf node 2.
     # ------------------------------------------------------------------
     "c_hub6": {
         "num_causal_variables": 6,

@@ -11,7 +11,9 @@ Usage:
     python run_all.py --seeds 0 5                          # Custom seed range [0, 5)
     python run_all.py --dgp-list a b                       # Subset of synthetic DGPs
     python run_all.py --ours --synthetic \
-        --max-epochs 2 --accelerator cpu                   # Smoke test on CPU
+        --max-epochs 2 --accelerator cpu \
+        --result-root ./results_smoke                     # Smoke test on CPU
+    python run_all.py --result-root ./results_custom       # Separate output root
 
 Result directory layout (consumed by plots/*.py):
     result_<model>_<mode>/<dgp>/<seed>_dci.csv
@@ -70,7 +72,7 @@ def _extra(args, model, mode):
 
 
 def run_ours_synthetic(seeds, dgp_list, args):
-    result_dir = "./result_ours_synthetic"
+    result_dir = os.path.join(args.result_root, "result_ours_synthetic")
     os.makedirs(result_dir, exist_ok=True)
     for seed in seeds:
         for dgp_name in dgp_list:
@@ -89,7 +91,7 @@ def run_ours_synthetic(seeds, dgp_list, args):
 
 
 def run_ours_flow(seeds, args):
-    result_dir = "./result_ours_flow"
+    result_dir = os.path.join(args.result_root, "result_ours_flow")
     os.makedirs(os.path.join(result_dir, "c_real"), exist_ok=True)
     for seed in seeds:
         cmd = [
@@ -110,7 +112,7 @@ def run_ours_flow(seeds, args):
 
 
 def run_ours_pendulum(seeds, args):
-    result_dir = "./result_ours_pendulum"
+    result_dir = os.path.join(args.result_root, "result_ours_pendulum")
     os.makedirs(os.path.join(result_dir, "c_real"), exist_ok=True)
     for seed in seeds:
         cmd = [
@@ -129,7 +131,7 @@ def run_ours_pendulum(seeds, args):
 
 
 def run_gin_synthetic(seeds, dgp_list, args):
-    result_dir = "./result_GIN_synthetic"
+    result_dir = os.path.join(args.result_root, "result_GIN_synthetic")
     os.makedirs(result_dir, exist_ok=True)
     for seed in seeds:
         for dgp_name in dgp_list:
@@ -147,7 +149,7 @@ def run_gin_synthetic(seeds, dgp_list, args):
 
 
 def run_gin_flow(seeds, args):
-    result_dir = "./result_GIN_flow"
+    result_dir = os.path.join(args.result_root, "result_GIN_flow")
     os.makedirs(os.path.join(result_dir, "c_real"), exist_ok=True)
     for seed in seeds:
         cmd = [
@@ -165,7 +167,7 @@ def run_gin_flow(seeds, args):
 
 
 def run_gin_pendulum(seeds, args):
-    result_dir = "./result_GIN_pendulum"
+    result_dir = os.path.join(args.result_root, "result_GIN_pendulum")
     os.makedirs(os.path.join(result_dir, "c_real"), exist_ok=True)
     for seed in seeds:
         cmd = [
@@ -183,7 +185,7 @@ def run_gin_pendulum(seeds, args):
 
 
 def run_ivae_synthetic(seeds, dgp_list, args):
-    result_dir = "./result_iVAE_synthetic"
+    result_dir = os.path.join(args.result_root, "result_iVAE_synthetic")
     os.makedirs(result_dir, exist_ok=True)
     for seed in seeds:
         for dgp_name in dgp_list:
@@ -203,7 +205,7 @@ def run_ivae_synthetic(seeds, dgp_list, args):
 
 
 def run_ivae_flow(seeds, args):
-    result_dir = "./result_iVAE_flow"
+    result_dir = os.path.join(args.result_root, "result_iVAE_flow")
     os.makedirs(os.path.join(result_dir, "c_real"), exist_ok=True)
     for seed in seeds:
         cmd = [
@@ -221,7 +223,7 @@ def run_ivae_flow(seeds, args):
 
 
 def run_ivae_pendulum(seeds, args):
-    result_dir = "./result_iVAE_pendulum"
+    result_dir = os.path.join(args.result_root, "result_iVAE_pendulum")
     os.makedirs(os.path.join(result_dir, "c_real"), exist_ok=True)
     for seed in seeds:
         cmd = [
@@ -259,6 +261,10 @@ if __name__ == "__main__":
     parser.add_argument("--all", action="store_true", help="Run all experiments")
 
     # Configuration
+    parser.add_argument(
+        "--result-root", default=".",
+        help="Parent directory for result_<model>_<mode> folders. Default: current directory.",
+    )
     parser.add_argument(
         "--seeds", nargs=2, type=int, default=[0, 20], metavar=("START", "END"),
         help="Seed range [START, END). Default: 0 20 (matches paper).",

@@ -2,60 +2,53 @@
 
 ## Motivation
 
-- Motivation: check robustness beyond the limited set of graph structures in Fig. 3.
-- Goal: check whether Algorithm 1 with selection enabled remains stable on
-  denser or larger graphs.
+- Goal: evaluate the proposed training method on denser or larger graphs
+  using preconfigured selected auxiliary sets.
 
 ## What we do
 
 Five additional synthetic DGPs are defined in ``extra_graphs.py``
 (``c_dense``, ``c_deep``, ``c_chain``, ``c_obs_chain``, ``c_hub6``).
-All of them extend the style of ``c_real`` (Fig. 1d) with more nodes
-and/or denser parent sets. We run Algorithm 1 with selection enabled
-(its default configuration) on each graph and compare to the paper's
-``c_real`` baseline from ``config.DGP``. The hypothesis: the method
-continues to deliver strong DCI / MCC as graphs grow denser.
+They vary the topology of ``c_real`` (Fig. 1d), including denser graphs
+and longer chains. Each graph uses the ``selected_idx`` in its DGP spec.
+The paper's ``c_real`` baseline from ``config.DGP`` is included with
+``--include-baseline``. These runs evaluate recovery with fixed auxiliary
+sets; they do not execute Algorithm 1 or Bayes-ball.
 
 No edit is made to ``config.py``. Instead, the checked-in wrapper
 ``_wrapper.py`` registers ``EXTRA_DGPS`` into ``config.DGP`` for that
 subprocess and then invokes ``experiments.Ours.main`` via ``runpy``.
 
-## Why not with-vs-without selection?
+## Scope of the comparison
 
-The obvious experiment -- toggle ``selected_idx = []`` on the same
-graph -- is not realisable in the current codebase. Algorithm 1's loss
-slices the latent by ``selected_idx`` and then computes a covariance /
-multivariate normal density on the slice; with an empty index set the
-call crashes in ``training_step`` (``torch.cov`` / ``MultivariateNormal``
-on empty tensors). Rather than fight the training step, we reframe the
-study: run Algorithm 1 on a spectrum of graph densities and show that
-it holds up from 4-node sparse (``c_real``) through 6-node dense
-(``c_hub6``).
+This sweep does not compare the chosen set ``C`` with conditioning on all
+observed sources (``C = O``). An empty ``selected_idx`` instead removes
+all conditioning sources and is unsupported by the current covariance /
+multivariate-normal training term. That limitation is separate from a
+selection-vs-all-observed comparison.
 
 ## Expected output
 
 * ``results/{dgp}/{seed}_dci.csv``, ``{seed}_mcc.csv``, and
   ``{seed}_mcc_meta.json``
-* ``results/selection_ablation_summary.{csv,tex}`` (paper-ready).
+* ``results/selection_ablation_summary.{csv,tex}``
 
 ## Runtime estimate
 
-Single run ~6-8 min on A100. Full sweep (6 DGPs x 5 seeds = 30 runs)
+Single run ~6-8 min on A100. Sweep including the baseline (6 DGPs x 5 seeds = 30 runs)
 ~3-4 GPU-hr.
 
 ## How to interpret
 
-If Algorithm 1's DCI / MCC remain strong on the denser graphs
-(``c_hub6``, ``c_deep``, ``c_dense``), this supports the robustness of
-the selection-enabled method beyond the Fig. 3 graphs. It does not claim
-to measure a with-vs-without selection delta. If the baseline
-(``c_real``) and the dense graphs give similar numbers, we still report
-them and note that Fig. 3's setting is representative.
+Compare DCI / MCC across graph configurations and seeds to assess empirical
+recovery with the specified auxiliary sets. Differences do not isolate the
+benefit of the selection algorithm, since both the graphs and selected sets
+vary. This sweep is not a reported App. E table.
 
 ## Author follow-up
 
-- Run the sweep, then inspect ``selection_ablation_summary.csv`` /
-  ``.tex`` and compare the table against the paper appendix.
+- Inspect ``selection_ablation_summary.csv`` / ``.tex`` alongside each
+  graph's configured auxiliary set.
 - If a seed crashes (GPU OOM, numerical blow-up, etc.), it gets logged
   to the run's ``*_errors.log`` file and the sweep continues unless
   ``--stop-on-error`` is passed.
